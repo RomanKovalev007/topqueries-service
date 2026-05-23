@@ -1,6 +1,8 @@
 package service
 
 import (
+	"time"
+
 	"github.com/RomanKovalev007/topqueries-service/internal/domain"
 )
 
@@ -20,7 +22,9 @@ func NewService(window windowProvider) *Service {
 }
 
 func (s *Service) Add(searchEvent domain.SearchEvent) {
-	s.window.Add(searchEvent.QueryText)
+	if time.Since(searchEvent.TimeRequest) < 5 * time.Minute {
+		s.window.Add(searchEvent.QueryText)
+	}
 }
 
 func (s *Service) GetTopN(n int) []domain.TopEntry {
