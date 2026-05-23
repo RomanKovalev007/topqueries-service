@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package topqueries.v1;
+
+option go_package = "github.com/RomanKovalev007/topqueries-service/gen/pb;pb";
+
+service TopQueriesService {
+  // Топ N запросов за последние 5 минут
+  rpc GetTopN(GetTopRequest) returns (GetTopResponse);
+
+  // Управление стоп-листом
+  rpc AddStopWords(StopWordRequest) returns (StopWordResponse);
+  rpc RemoveStopWords(StopWordRequest) returns (StopWordResponse);
+}
+
+message GetTopRequest {
+  int32 n = 1;
+}
+
+message TopEntry {
+  string query = 1;
+  int64  count  = 2;
+}
+
+message GetTopResponse {
+  repeated TopEntry entries = 1;
+}
+
+message StopWordRequest {
+  repeated string word = 1;
+}
+
+message StopWordResponse {}
