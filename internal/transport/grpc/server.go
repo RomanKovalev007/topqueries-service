@@ -6,7 +6,6 @@ import (
 )
 
 type service interface{
-	Add(query string)
 	GetTopN(n int) []domain.TopEntry
 }
 

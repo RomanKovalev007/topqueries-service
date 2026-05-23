@@ -19,8 +19,8 @@ func NewService(window windowProvider) *Service {
 	}
 }
 
-func (s *Service) Add(query string) {
-	s.window.Add(query)
+func (s *Service) Add(searchEvent domain.SearchEvent) {
+	s.window.Add(searchEvent.QueryText)
 }
 
 func (s *Service) GetTopN(n int) []domain.TopEntry {
