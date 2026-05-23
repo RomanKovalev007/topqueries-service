@@ -3,7 +3,7 @@ package consumer
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"log/slog"
 
 	"github.com/RomanKovalev007/topqueries-service/internal/domain"
 	"github.com/segmentio/kafka-go"
@@ -22,9 +22,10 @@ type KafkaConfig struct {
 type Consumer struct {
 	logReader *kafka.Reader
 	svc       service
+	log       *slog.Logger
 }
 
-func NewConsumer(cfg KafkaConfig, svc service) *Consumer {
+func NewConsumer(cfg KafkaConfig, svc service, log *slog.Logger) *Consumer {
 	return &Consumer{
 		logReader: kafka.NewReader(kafka.ReaderConfig{
 			Brokers: cfg.Brokers,
@@ -32,6 +33,7 @@ func NewConsumer(cfg KafkaConfig, svc service) *Consumer {
 			GroupID: cfg.GroupID,
 		}),
 		svc: svc,
+		log: log,
 	}
 }
 
@@ -44,15 +46,15 @@ func (c *Consumer) Start(ctx context.Context) {
 			if ctx.Err() != nil{
 				return
 			}
-			log.Printf("failed to read log message: %v", err)
+			c.log.Error("failed to read kafka message", "err", err)
 			continue
 		}
 		if err := json.Unmarshal(msg.Value, &event); err != nil {
-			log.Printf("failed to unmarshal log message: %v", err)
+			c.log.Error("failed to unmarshal message", "err", err, "offset", msg.Offset)
 			continue
 		}
 		if event.QueryText == ""{
-			log.Print("empty query, skipping")
+			c.log.Warn("empty query, skipping", "offset", msg.Offset)
 			continue
 		}
 		c.svc.Add(event)
