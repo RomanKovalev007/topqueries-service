@@ -39,12 +39,6 @@ func (h *minHeap) Pop() any {
 }
 
 
-// Cache Top N queries
-
-type CacheTop struct{
-	val atomic.Pointer[[]domain.TopEntry]
-} 
-
 // Bucket
 
 type Bucket struct {
@@ -58,10 +52,11 @@ func NewBucket() *Bucket {
 	}
 }
 
+
 // Window
 
 type Window struct {
-	cacheTop CacheTop
+	cacheTop atomic.Pointer[[]domain.TopEntry]
 	totalCounts map[string]int64
 	tcMtx sync.Mutex
 	buckets [countOfBuckets]*Bucket
@@ -125,7 +120,7 @@ func (w *Window) Ticker(ctx context.Context) {
 }
 
 func (w *Window) GetTopN(n int) []domain.TopEntry {
-	top := w.cacheTop.val.Load()
+	top := w.cacheTop.Load()
 	if top == nil{
 		return []domain.TopEntry{}
 	}
@@ -156,5 +151,5 @@ func (w *Window) calculateTopN(totalCounts map[string]int64) {
 		res[i] = heap.Pop(&h).(domain.TopEntry)
 	}
 
-	w.cacheTop.val.Store(&res) 
+	w.cacheTop.Store(&res) 
 }
