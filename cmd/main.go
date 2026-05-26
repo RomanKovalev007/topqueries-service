@@ -64,7 +64,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer(
-		grpc.UnaryInterceptor(grpctransport.UnaryMetricsInterceptor),
+		grpc.UnaryInterceptor(grpctransport.UnaryInterceptor(l)),
 	)
 	pb.RegisterTopQueriesServiceServer(grpcServer, srv)
 	reflection.Register(grpcServer)
