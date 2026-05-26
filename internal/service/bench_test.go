@@ -10,10 +10,10 @@ import (
 )
 
 func setupService() *Service {
-	window := store.NewQueryWindow()
+	window := store.NewQueryWindow(5*time.Minute, 30, 100)
 	stopList := store.NewStopList([]string{})
-	rateLimiter := store.NewRateLimiter()
-	return NewService(window, stopList, rateLimiter)
+	rateLimiter := store.NewRateLimiter(time.Minute, 12, 100)
+	return NewService(window, stopList, rateLimiter, 5*time.Minute)
 }
 
 func BenchmarkAdd(b *testing.B) {

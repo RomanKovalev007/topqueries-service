@@ -24,28 +24,30 @@ type rateLimiter interface {
 }
 
 type Service struct {
-	window      windowProvider
-	stopList    stopList
-	rateLimiter rateLimiter
+	window         windowProvider
+	stopList       stopList
+	rateLimiter    rateLimiter
+	windowDuration time.Duration
 }
 
-func NewService(window windowProvider, stopList stopList, rateLimiter rateLimiter) *Service {
+func NewService(window windowProvider, stopList stopList, rateLimiter rateLimiter, windowDuration time.Duration) *Service {
 	return &Service{
-		window:      window,
-		stopList:    stopList,
-		rateLimiter: rateLimiter,
+		window:         window,
+		stopList:       stopList,
+		rateLimiter:    rateLimiter,
+		windowDuration: windowDuration,
 	}
 }
 
 func (s *Service) Add(searchEvent domain.SearchEvent) {
-	if time.Since(searchEvent.TimeRequest) < 5*time.Minute {
+	if time.Since(searchEvent.TimeRequest) < s.windowDuration {
 		if s.rateLimiter.Allow(searchEvent.UserID.String()) {
 			words := strings.Fields(searchEvent.QueryText)
 			if len(words) == 0 {
 				return
 			}
 			if !s.stopList.Contains(words) {
-				s.window.Add(strings.TrimSpace(searchEvent.QueryText))
+				s.window.Add(strings.Join(words, " "))
 				metrics.EventsTotal.WithLabelValues("completed").Inc()
 			} else {
 				metrics.EventsTotal.WithLabelValues("stoplist").Inc()

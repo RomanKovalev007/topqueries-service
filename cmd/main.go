@@ -36,19 +36,19 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	window := store.NewQueryWindow()
+	window := store.NewQueryWindow(cfg.Window.Duration, cfg.Window.BucketCount, cfg.Window.MaxTopN)
 	go window.Ticker(ctx)
 
-	rateLimiter := store.NewRateLimiter()
+	rateLimiter := store.NewRateLimiter(cfg.RateLimiter.WindowDuration, cfg.RateLimiter.BucketCount, cfg.RateLimiter.MaxRequests)
 	go rateLimiter.Ticker(ctx)
 
 	stoplist := store.NewStopList([]string{})
 
-	svc := service.NewService(window, stoplist, rateLimiter)
+	svc := service.NewService(window, stoplist, rateLimiter, cfg.Window.Duration)
 
 	kafkaCfg := consumer.KafkaConfig{
 		Brokers: strings.Split(cfg.Kafka.Brokers, ","),
-		Topic: cfg.Kafka.Topic,
+		Topic:   cfg.Kafka.Topic,
 		GroupID: cfg.Kafka.GroupID,
 	}
 	c := consumer.NewConsumer(kafkaCfg, svc, l)

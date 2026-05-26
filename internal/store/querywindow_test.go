@@ -1,9 +1,12 @@
 package store
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestCalculateTopN_Order(t *testing.T) {
-	qw := NewQueryWindow()
+	qw := NewQueryWindow(5*time.Minute, 30, 100)
 
 	counts := map[string]int64{
 		"nike":    100,
@@ -25,7 +28,7 @@ func TestCalculateTopN_Order(t *testing.T) {
 }
 
 func TestCalculateTopN_LimitN(t *testing.T) {
-	qw := NewQueryWindow()
+	qw := NewQueryWindow(5*time.Minute, 30, 100)
 
 	counts := map[string]int64{"nike": 3, "adidas": 2, "puma": 1}
 	qw.calculateTopN(counts)
@@ -37,22 +40,22 @@ func TestCalculateTopN_LimitN(t *testing.T) {
 }
 
 func TestCalculateTopN_MaxN(t *testing.T) {
-	qw := NewQueryWindow()
+	qw := NewQueryWindow(5*time.Minute, 30, 100)
 
-	counts := make(map[string]int64, maxN+2)
-	for i := range maxN + 2 {
+	counts := make(map[string]int64, 100+2)
+	for i := range 100 + 2 {
 		counts[string(rune('a'+i%26))+string(rune('0'+i/26))] = int64(i)
 	}
 	qw.calculateTopN(counts)
 
-	top := qw.GetTopN(maxN + 2)
-	if len(top) != maxN {
-		t.Fatalf("expected top capped at %d, got %d", maxN, len(top))
+	top := qw.GetTopN(100 + 2)
+	if len(top) != 100 {
+		t.Fatalf("expected top capped at %d, got %d", 100, len(top))
 	}
 }
 
 func TestCalculateTopN_LessThanRequested(t *testing.T) {
-	qw := NewQueryWindow()
+	qw := NewQueryWindow(5*time.Minute, 30, 100)
 	qw.calculateTopN(map[string]int64{"nike": 1})
 
 	top := qw.GetTopN(10)
@@ -62,7 +65,7 @@ func TestCalculateTopN_LessThanRequested(t *testing.T) {
 }
 
 func TestCalculateTopN_Empty(t *testing.T) {
-	qw := NewQueryWindow()
+	qw := NewQueryWindow(5*time.Minute, 30, 100)
 	qw.calculateTopN(map[string]int64{})
 
 	top := qw.GetTopN(10)
@@ -72,7 +75,7 @@ func TestCalculateTopN_Empty(t *testing.T) {
 }
 
 func TestGetTopN_BeforeCalculate(t *testing.T) {
-	qw := NewQueryWindow()
+	qw := NewQueryWindow(5*time.Minute, 30, 100)
 	top := qw.GetTopN(10)
 
 	if top == nil {

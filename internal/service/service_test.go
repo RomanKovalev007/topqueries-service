@@ -39,7 +39,7 @@ func freshEvent() domain.SearchEvent {
 
 func TestAdd_Completed(t *testing.T) {
 	w := &mockWindow{}
-	svc := NewService(w, &mockStopList{contains: false}, &mockRateLimiter{allow: true})
+	svc := NewService(w, &mockStopList{contains: false}, &mockRateLimiter{allow: true}, 5*time.Minute)
 
 	svc.Add(freshEvent())
 
@@ -50,7 +50,7 @@ func TestAdd_Completed(t *testing.T) {
 
 func TestAdd_OutdatedEvent(t *testing.T) {
 	w := &mockWindow{}
-	svc := NewService(w, &mockStopList{contains: false}, &mockRateLimiter{allow: true})
+	svc := NewService(w, &mockStopList{contains: false}, &mockRateLimiter{allow: true}, 5*time.Minute)
 
 	event := freshEvent()
 	event.TimeRequest = time.Now().Add(-6 * time.Minute)
@@ -63,7 +63,7 @@ func TestAdd_OutdatedEvent(t *testing.T) {
 
 func TestAdd_RateLimited(t *testing.T) {
 	w := &mockWindow{}
-	svc := NewService(w, &mockStopList{contains: false}, &mockRateLimiter{allow: false})
+	svc := NewService(w, &mockStopList{contains: false}, &mockRateLimiter{allow: false}, 5*time.Minute)
 
 	svc.Add(freshEvent())
 
@@ -74,7 +74,7 @@ func TestAdd_RateLimited(t *testing.T) {
 
 func TestAdd_StopList(t *testing.T) {
 	w := &mockWindow{}
-	svc := NewService(w, &mockStopList{contains: true}, &mockRateLimiter{allow: true})
+	svc := NewService(w, &mockStopList{contains: true}, &mockRateLimiter{allow: true}, 5*time.Minute)
 
 	svc.Add(freshEvent())
 
@@ -85,7 +85,7 @@ func TestAdd_StopList(t *testing.T) {
 
 func TestAdd_QueryTrimmed(t *testing.T) {
 	w := &mockWindow{}
-	svc := NewService(w, &mockStopList{contains: false}, &mockRateLimiter{allow: true})
+	svc := NewService(w, &mockStopList{contains: false}, &mockRateLimiter{allow: true}, 5*time.Minute)
 
 	e := freshEvent()
 	e.QueryText = "  кроссовки nike  "
@@ -101,7 +101,7 @@ func TestAdd_QueryTrimmed(t *testing.T) {
 
 func TestAdd_WhitespaceOnlyQuery(t *testing.T) {
 	w := &mockWindow{}
-	svc := NewService(w, &mockStopList{contains: false}, &mockRateLimiter{allow: true})
+	svc := NewService(w, &mockStopList{contains: false}, &mockRateLimiter{allow: true}, 5*time.Minute)
 
 	e := freshEvent()
 	e.QueryText = "   "

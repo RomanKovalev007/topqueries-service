@@ -5,26 +5,21 @@ import (
 	"time"
 )
 
-const (
-	maxCountOfUserRequest = 100
-	rateLimiterLengthOftime = 1*time.Minute
-	rateLimiterCountsOfBuckets = 12
-)
-
 type RateLimiter struct {
-	window *CounterWindow
+	window      *CounterWindow
+	maxRequests int64
 }
 
-func NewRateLimiter() *RateLimiter {
-	window := NewCounterWindow(rateLimiterLengthOftime, rateLimiterCountsOfBuckets)
+func NewRateLimiter(window time.Duration, bucketCount int, maxRequests int64) *RateLimiter {
 	return &RateLimiter{
-		window: window,
+		window:      NewCounterWindow(window, bucketCount),
+		maxRequests: maxRequests,
 	}
 }
 
 func (rl *RateLimiter) Allow(userID string) bool {
 	rl.window.Add(userID)
-	return rl.window.GetCount(userID) <= maxCountOfUserRequest
+	return rl.window.GetCount(userID) <= rl.maxRequests
 }
 
 func (rl *RateLimiter) Ticker(ctx context.Context) {
