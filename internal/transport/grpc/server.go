@@ -7,6 +7,8 @@ import (
 
 type service interface{
 	GetTopN(n int) []domain.TopEntry
+	AddStopWords(words []string)
+	RemoveStopWords(words []string)
 }
 
 type Server struct{

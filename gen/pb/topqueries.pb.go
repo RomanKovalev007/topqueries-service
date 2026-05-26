@@ -163,7 +163,7 @@ func (x *GetTopResponse) GetEntries() []*TopEntry {
 
 type StopWordRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Word          []string               `protobuf:"bytes,1,rep,name=word,proto3" json:"word,omitempty"`
+	Words         []string               `protobuf:"bytes,1,rep,name=words,proto3" json:"words,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -198,9 +198,9 @@ func (*StopWordRequest) Descriptor() ([]byte, []int) {
 	return file_api_proto_topqueries_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *StopWordRequest) GetWord() []string {
+func (x *StopWordRequest) GetWords() []string {
 	if x != nil {
-		return x.Word
+		return x.Words
 	}
 	return nil
 }
@@ -252,9 +252,9 @@ const file_api_proto_topqueries_proto_rawDesc = "" +
 	"\x05query\x18\x01 \x01(\tR\x05query\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x03R\x05count\"C\n" +
 	"\x0eGetTopResponse\x121\n" +
-	"\aentries\x18\x01 \x03(\v2\x17.topqueries.v1.TopEntryR\aentries\"%\n" +
-	"\x0fStopWordRequest\x12\x12\n" +
-	"\x04word\x18\x01 \x03(\tR\x04word\"\x12\n" +
+	"\aentries\x18\x01 \x03(\v2\x17.topqueries.v1.TopEntryR\aentries\"'\n" +
+	"\x0fStopWordRequest\x12\x14\n" +
+	"\x05words\x18\x01 \x03(\tR\x05words\"\x12\n" +
 	"\x10StopWordResponse2\x80\x02\n" +
 	"\x11TopQueriesService\x12F\n" +
 	"\aGetTopN\x12\x1c.topqueries.v1.GetTopRequest\x1a\x1d.topqueries.v1.GetTopResponse\x12O\n" +

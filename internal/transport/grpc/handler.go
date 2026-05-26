@@ -31,17 +31,17 @@ func (s *Server) GetTopN(ctx context.Context, req *pb.GetTopRequest) (*pb.GetTop
 }
 
 func (s *Server) AddStopWords(ctx context.Context, req *pb.StopWordRequest) (*pb.StopWordResponse, error) {
-	if len(req.GetWord()) == 0 {
+	if len(req.GetWords()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "words list must not be empty")
 	}
-	// TODO: s.svc.AddStopWords(req.GetWord())
+	s.svc.AddStopWords(req.GetWords())
 	return &pb.StopWordResponse{}, nil
 }
 
 func (s *Server) RemoveStopWords(ctx context.Context, req *pb.StopWordRequest) (*pb.StopWordResponse, error) {
-	if len(req.GetWord()) == 0 {
+	if len(req.GetWords()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "words list must not be empty")
 	}
-	// TODO: s.svc.RemoveStopWords(req.GetWord())
+	s.svc.RemoveStopWords(req.GetWords())
 	return &pb.StopWordResponse{}, nil
 }

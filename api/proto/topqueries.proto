@@ -27,7 +27,7 @@ message GetTopResponse {
 }
 
 message StopWordRequest {
-  repeated string word = 1;
+  repeated string words = 1;
 }
 
 message StopWordResponse {}

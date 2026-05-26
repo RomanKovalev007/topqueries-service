@@ -34,7 +34,9 @@ func main() {
 	window := store.NewWindow()
 	go window.Ticker(ctx)
 
-	svc := service.NewService(window)
+	stoplist := store.NewStopList([]string{})
+
+	svc := service.NewService(window, stoplist)
 
 	kafkaCfg := consumer.KafkaConfig{
 		Brokers: strings.Split(cfg.Kafka.Brokers, ","),
