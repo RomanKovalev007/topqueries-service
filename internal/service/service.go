@@ -41,9 +41,12 @@ func (s *Service) Add(searchEvent domain.SearchEvent) {
 	if time.Since(searchEvent.TimeRequest) < 5*time.Minute {
 		if s.rateLimiter.Allow(searchEvent.UserID.String()) {
 			words := strings.Fields(searchEvent.QueryText)
+			if len(words) == 0 {
+				return
+			}
 			if !s.stopList.Contains(words) {
 				s.window.Add(strings.TrimSpace(searchEvent.QueryText))
-				metrics.EventsTotal.WithLabelValues("complete").Inc()
+				metrics.EventsTotal.WithLabelValues("completed").Inc()
 			} else {
 				metrics.EventsTotal.WithLabelValues("stoplist").Inc()
 			}
