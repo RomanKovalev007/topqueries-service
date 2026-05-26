@@ -27,8 +27,16 @@ var (
 		},
 		[]string{"method"},
 	)
+
+	KafkaMessagesTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "topqueries_kafka_messages_total",
+			Help: "Total number of Kafka messages by result",
+		},
+		[]string{"result"},
+	)
 )
 
 func Register() {
-	prometheus.MustRegister(EventsTotal, GRPCRequestsTotal, GRPCRequestDuration)
+	prometheus.MustRegister(EventsTotal, GRPCRequestsTotal, GRPCRequestDuration, KafkaMessagesTotal)
 }
