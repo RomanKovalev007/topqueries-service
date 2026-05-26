@@ -17,11 +17,15 @@ func NewStopList(words []string) *StopList {
 	}
 }
 
-func (sl *StopList) Contains(word string) bool {
+func (sl *StopList) Contains(query []string) bool {
 	sl.mtx.RLock()
-	_, ok := sl.words[word]
-	sl.mtx.RUnlock()
-	return ok
+	defer sl.mtx.RUnlock()
+	for _, w := range query {
+		if _, ok := sl.words[w]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 func (sl *StopList) AddWords(words []string) {

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/RomanKovalev007/topqueries-service/internal/domain"
@@ -13,7 +15,7 @@ type windowProvider interface {
 
 type stopList interface {
 	AddWords(words []string)
-	Contains(word string) bool
+	Contains(query []string) bool
 	RemoveWords(words []string)
 }
 
@@ -31,8 +33,9 @@ func NewService(window windowProvider, stopList stopList) *Service {
 
 func (s *Service) Add(searchEvent domain.SearchEvent) {
 	if time.Since(searchEvent.TimeRequest) < 5 * time.Minute {
-		if !s.stopList.Contains(searchEvent.QueryText){
-			s.window.Add(searchEvent.QueryText)
+		sortSlice := s.queryToSortSlice(searchEvent.QueryText)
+		if !s.stopList.Contains(sortSlice){
+			s.window.Add(strings.Join(sortSlice, " "))
 		}
 	}
 }
@@ -47,4 +50,12 @@ func (s *Service) AddStopWords(words []string) {
 
 func (s *Service) RemoveStopWords(words []string) {
 	s.stopList.RemoveWords(words)
+}
+
+
+// TODO: sorted key breaks display order (ex: "nike air max" to "air max nike").
+func (s *Service) queryToSortSlice(query string) []string {
+	sl := strings.Fields(query)
+	slices.Sort(sl)
+	return sl
 }
