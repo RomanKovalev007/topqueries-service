@@ -14,6 +14,11 @@ type Config struct {
 	Kafka       KafkaConfig
 	Window      WindowConfig
 	RateLimiter RateLimiterConfig
+	StopList    StopListConfig
+}
+
+type StopListConfig struct {
+	Words []string `env:"STOPLIST_WORDS" env-separator:","`
 }
 
 type KafkaConfig struct {

@@ -43,7 +43,7 @@ func main() {
 	rateLimiter := store.NewRateLimiter(cfg.RateLimiter.WindowDuration, cfg.RateLimiter.BucketCount, cfg.RateLimiter.MaxRequests)
 	go rateLimiter.Ticker(ctx)
 
-	stoplist := store.NewStopList([]string{})
+	stoplist := store.NewStopList(cfg.StopList.Words)
 
 	svc := service.NewService(window, stoplist, rateLimiter, cfg.Window.Duration, l)
 
