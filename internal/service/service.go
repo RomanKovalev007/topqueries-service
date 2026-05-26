@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/RomanKovalev007/topqueries-service/internal/domain"
+	"github.com/RomanKovalev007/topqueries-service/internal/metrics"
 )
 
 type windowProvider interface {
@@ -23,28 +24,35 @@ type rateLimiter interface {
 	Allow(userID string) bool
 }
 
-type Service struct{
-	window windowProvider
-	stopList stopList
+type Service struct {
+	window      windowProvider
+	stopList    stopList
 	rateLimiter rateLimiter
 }
 
 func NewService(window windowProvider, stopList stopList, rateLimiter rateLimiter) *Service {
 	return &Service{
-		window: window,
-		stopList: stopList,
+		window:      window,
+		stopList:    stopList,
 		rateLimiter: rateLimiter,
 	}
 }
 
 func (s *Service) Add(searchEvent domain.SearchEvent) {
-	if time.Since(searchEvent.TimeRequest) < 5 * time.Minute {
-		if s.rateLimiter.Allow(searchEvent.UserID.String()){
+	if time.Since(searchEvent.TimeRequest) < 5*time.Minute {
+		if s.rateLimiter.Allow(searchEvent.UserID.String()) {
 			sortSlice := s.queryToSortSlice(searchEvent.QueryText)
-			if !s.stopList.Contains(sortSlice){
+			if !s.stopList.Contains(sortSlice) {
 				s.window.Add(strings.Join(sortSlice, " "))
+				metrics.EventsTotal.WithLabelValues("complete").Inc()
+			} else {
+				metrics.EventsTotal.WithLabelValues("stoplist").Inc()
 			}
+		} else {
+			metrics.EventsTotal.WithLabelValues("rate_limited").Inc()
 		}
+	} else {
+		metrics.EventsTotal.WithLabelValues("outdated").Inc()
 	}
 }
 
@@ -59,7 +67,6 @@ func (s *Service) AddStopWords(words []string) {
 func (s *Service) RemoveStopWords(words []string) {
 	s.stopList.RemoveWords(words)
 }
-
 
 // TODO: sorted key breaks display order (ex: "nike air max" to "air max nike").
 func (s *Service) queryToSortSlice(query string) []string {

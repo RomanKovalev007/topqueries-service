@@ -5,6 +5,7 @@ import (
 	"log"
 	"log/slog"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -13,10 +14,12 @@ import (
 	"github.com/RomanKovalev007/topqueries-service/gen/pb"
 	"github.com/RomanKovalev007/topqueries-service/internal/config"
 	"github.com/RomanKovalev007/topqueries-service/internal/consumer"
+	"github.com/RomanKovalev007/topqueries-service/internal/metrics"
 	"github.com/RomanKovalev007/topqueries-service/internal/service"
 	"github.com/RomanKovalev007/topqueries-service/internal/store"
 	grpctransport "github.com/RomanKovalev007/topqueries-service/internal/transport/grpc"
 	"github.com/RomanKovalev007/topqueries-service/pkg/logger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 )
 
@@ -27,6 +30,8 @@ func main() {
 	}
 
 	l := logger.New(cfg.LogLevel)
+
+	metrics.Register()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
@@ -57,7 +62,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(grpctransport.UnaryMetricsInterceptor),
+	)
 	pb.RegisterTopQueriesServiceServer(grpcServer, srv)
 
 	go func() {
@@ -66,7 +73,14 @@ func main() {
 		}
 	}()
 
-	l.Info("service started", slog.String("grpc_port", cfg.GRPCPort))
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		if err := http.ListenAndServe(cfg.MetricsPort, nil); err != nil {
+			l.Error("metrics server stopped", "err", err)
+		}
+	}()
+
+	l.Info("service started", slog.String("grpc_port", cfg.GRPCPort), slog.String("metrics_port", cfg.MetricsPort))
 
 	<-ctx.Done()
 	l.Info("shutting down")

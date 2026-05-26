@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	GRPCPort string `env:"GRPC_PORT" env-default:":50051"`
-	LogLevel string `env:"LOG_LEVEL" env-default:"info"`
+	GRPCPort    string `env:"GRPC_PORT"    env-default:":50051"`
+	MetricsPort string `env:"METRICS_PORT" env-default:":9090"`
+	LogLevel    string `env:"LOG_LEVEL"    env-default:"info"`
 	Kafka KafkaConfig
 }
 
