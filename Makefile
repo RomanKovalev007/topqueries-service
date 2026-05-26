@@ -2,7 +2,7 @@ MODULE  := github.com/RomanKovalev007/topqueries-service
 PROTO_DIR := api/proto
 GEN_DIR   := gen/pb
 
-.PHONY: proto build run test
+.PHONY: proto build run test bench
 
 proto:
 	mkdir -p $(GEN_DIR)
@@ -21,3 +21,6 @@ run:
 
 test:
 	go test ./...
+
+bench:
+	go test ./... -bench=. -benchmem -benchtime=5s -run=^$
