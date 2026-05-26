@@ -31,12 +31,15 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	window := store.NewWindow()
+	window := store.NewQueryWindow()
 	go window.Ticker(ctx)
+
+	rateLimiter := store.NewRateLimiter()
+	go rateLimiter.Ticker(ctx)
 
 	stoplist := store.NewStopList([]string{})
 
-	svc := service.NewService(window, stoplist)
+	svc := service.NewService(window, stoplist, rateLimiter)
 
 	kafkaCfg := consumer.KafkaConfig{
 		Brokers: strings.Split(cfg.Kafka.Brokers, ","),

@@ -19,23 +19,31 @@ type stopList interface {
 	RemoveWords(words []string)
 }
 
+type rateLimiter interface {
+	Allow(userID string) bool
+}
+
 type Service struct{
 	window windowProvider
 	stopList stopList
+	rateLimiter rateLimiter
 }
 
-func NewService(window windowProvider, stopList stopList) *Service {
+func NewService(window windowProvider, stopList stopList, rateLimiter rateLimiter) *Service {
 	return &Service{
 		window: window,
 		stopList: stopList,
+		rateLimiter: rateLimiter,
 	}
 }
 
 func (s *Service) Add(searchEvent domain.SearchEvent) {
 	if time.Since(searchEvent.TimeRequest) < 5 * time.Minute {
-		sortSlice := s.queryToSortSlice(searchEvent.QueryText)
-		if !s.stopList.Contains(sortSlice){
-			s.window.Add(strings.Join(sortSlice, " "))
+		if s.rateLimiter.Allow(searchEvent.UserID.String()){
+			sortSlice := s.queryToSortSlice(searchEvent.QueryText)
+			if !s.stopList.Contains(sortSlice){
+				s.window.Add(strings.Join(sortSlice, " "))
+			}
 		}
 	}
 }
