@@ -1,7 +1,6 @@
 package service
 
 import (
-	"slices"
 	"strings"
 	"time"
 
@@ -41,9 +40,9 @@ func NewService(window windowProvider, stopList stopList, rateLimiter rateLimite
 func (s *Service) Add(searchEvent domain.SearchEvent) {
 	if time.Since(searchEvent.TimeRequest) < 5*time.Minute {
 		if s.rateLimiter.Allow(searchEvent.UserID.String()) {
-			sortSlice := s.queryToSortSlice(searchEvent.QueryText)
-			if !s.stopList.Contains(sortSlice) {
-				s.window.Add(strings.Join(sortSlice, " "))
+			words := strings.Fields(searchEvent.QueryText)
+			if !s.stopList.Contains(words) {
+				s.window.Add(strings.TrimSpace(searchEvent.QueryText))
 				metrics.EventsTotal.WithLabelValues("complete").Inc()
 			} else {
 				metrics.EventsTotal.WithLabelValues("stoplist").Inc()
@@ -66,11 +65,4 @@ func (s *Service) AddStopWords(words []string) {
 
 func (s *Service) RemoveStopWords(words []string) {
 	s.stopList.RemoveWords(words)
-}
-
-// TODO: sorted key breaks display order (ex: "nike air max" to "air max nike").
-func (s *Service) queryToSortSlice(query string) []string {
-	sl := strings.Fields(query)
-	slices.Sort(sl)
-	return sl
 }
