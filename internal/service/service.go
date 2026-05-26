@@ -42,8 +42,10 @@ func NewService(window windowProvider, stopList stopList, rateLimiter rateLimite
 func (s *Service) Add(searchEvent domain.SearchEvent) {
 	if time.Since(searchEvent.TimeRequest) < s.windowDuration {
 		if s.rateLimiter.Allow(searchEvent.UserID.String()) {
+			searchEvent.QueryText = strings.ToLower(searchEvent.QueryText)
 			words := strings.Fields(searchEvent.QueryText)
 			if len(words) == 0 {
+				metrics.EventsTotal.WithLabelValues("empty_query").Inc()
 				return
 			}
 			if !s.stopList.Contains(words) {
