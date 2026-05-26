@@ -22,7 +22,7 @@ func UnaryInterceptor(log *slog.Logger) grpc.UnaryServerInterceptor {
 		metrics.GRPCRequestsTotal.WithLabelValues(info.FullMethod, code).Inc()
 		metrics.GRPCRequestDuration.WithLabelValues(info.FullMethod).Observe(duration.Seconds())
 
-		log.Info("grpc request",
+		log.Debug("grpc request",
 			slog.String("method", info.FullMethod),
 			slog.String("status", code),
 			slog.Duration("duration", duration),
