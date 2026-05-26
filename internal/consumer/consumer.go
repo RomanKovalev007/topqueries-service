@@ -20,14 +20,14 @@ type KafkaConfig struct {
 }
 
 type Consumer struct {
-	logReader *kafka.Reader
+	reader *kafka.Reader
 	svc       service
 	log       *slog.Logger
 }
 
 func NewConsumer(cfg KafkaConfig, svc service, log *slog.Logger) *Consumer {
 	return &Consumer{
-		logReader: kafka.NewReader(kafka.ReaderConfig{
+		reader: kafka.NewReader(kafka.ReaderConfig{
 			Brokers: cfg.Brokers,
 			Topic:   cfg.Topic,
 			GroupID: cfg.GroupID,
@@ -38,10 +38,10 @@ func NewConsumer(cfg KafkaConfig, svc service, log *slog.Logger) *Consumer {
 }
 
 func (c *Consumer) Start(ctx context.Context) {
-	defer c.logReader.Close()
+	defer c.reader.Close()
 	for {
 		var event domain.SearchEvent
-		msg, err := c.logReader.ReadMessage(ctx)
+		msg, err := c.reader.ReadMessage(ctx)
 		if err != nil{
 			if ctx.Err() != nil{
 				return
