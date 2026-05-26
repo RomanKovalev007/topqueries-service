@@ -1,6 +1,8 @@
 package service
 
 import (
+	"io"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -13,7 +15,8 @@ func setupService() *Service {
 	window := store.NewQueryWindow(5*time.Minute, 30, 100)
 	stopList := store.NewStopList([]string{})
 	rateLimiter := store.NewRateLimiter(time.Minute, 12, 100)
-	return NewService(window, stopList, rateLimiter, 5*time.Minute)
+	log := slog.New(slog.NewTextHandler(io.Discard, nil))
+	return NewService(window, stopList, rateLimiter, 5*time.Minute, log)
 }
 
 func BenchmarkAdd(b *testing.B) {

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"log/slog"
 	"strings"
 	"time"
 
@@ -28,14 +29,16 @@ type Service struct {
 	stopList       stopList
 	rateLimiter    rateLimiter
 	windowDuration time.Duration
+	log            *slog.Logger
 }
 
-func NewService(window windowProvider, stopList stopList, rateLimiter rateLimiter, windowDuration time.Duration) *Service {
+func NewService(window windowProvider, stopList stopList, rateLimiter rateLimiter, windowDuration time.Duration, log *slog.Logger) *Service {
 	return &Service{
 		window:         window,
 		stopList:       stopList,
 		rateLimiter:    rateLimiter,
 		windowDuration: windowDuration,
+		log:            log,
 	}
 }
 
@@ -56,6 +59,7 @@ func (s *Service) Add(searchEvent domain.SearchEvent) {
 			}
 		} else {
 			metrics.EventsTotal.WithLabelValues("rate_limited").Inc()
+			s.log.Warn("user rate limited", "user_id", searchEvent.UserID.String())
 		}
 	} else {
 		metrics.EventsTotal.WithLabelValues("outdated").Inc()

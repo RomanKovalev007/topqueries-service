@@ -39,6 +39,7 @@ func NewConsumer(cfg KafkaConfig, svc service, log *slog.Logger) *Consumer {
 
 func (c *Consumer) Start(ctx context.Context) {
 	defer c.reader.Close()
+	c.log.Info("kafka consumer started", "topic", c.reader.Config().Topic, "brokers", c.reader.Config().Brokers)
 	for {
 		var event domain.SearchEvent
 		msg, err := c.reader.ReadMessage(ctx)

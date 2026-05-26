@@ -21,6 +21,7 @@ import (
 	"github.com/RomanKovalev007/topqueries-service/pkg/logger"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -44,7 +45,7 @@ func main() {
 
 	stoplist := store.NewStopList([]string{})
 
-	svc := service.NewService(window, stoplist, rateLimiter, cfg.Window.Duration)
+	svc := service.NewService(window, stoplist, rateLimiter, cfg.Window.Duration, l)
 
 	kafkaCfg := consumer.KafkaConfig{
 		Brokers: strings.Split(cfg.Kafka.Brokers, ","),
@@ -66,6 +67,7 @@ func main() {
 		grpc.UnaryInterceptor(grpctransport.UnaryMetricsInterceptor),
 	)
 	pb.RegisterTopQueriesServiceServer(grpcServer, srv)
+	reflection.Register(grpcServer)
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
@@ -80,7 +82,17 @@ func main() {
 		}
 	}()
 
-	l.Info("service started", slog.String("grpc_port", cfg.GRPCPort), slog.String("metrics_port", cfg.MetricsPort))
+	l.Info("service started",
+		slog.String("grpc_port", cfg.GRPCPort),
+		slog.String("metrics_port", cfg.MetricsPort),
+		slog.String("kafka_brokers", cfg.Kafka.Brokers),
+		slog.String("kafka_topic", cfg.Kafka.Topic),
+		slog.String("window_duration", cfg.Window.Duration.String()),
+		slog.Int("window_buckets", cfg.Window.BucketCount),
+		slog.Int("window_max_top_n", cfg.Window.MaxTopN),
+		slog.String("rate_limiter_window", cfg.RateLimiter.WindowDuration.String()),
+		slog.Int64("rate_limiter_max_requests", cfg.RateLimiter.MaxRequests),
+	)
 
 	<-ctx.Done()
 	l.Info("shutting down")
